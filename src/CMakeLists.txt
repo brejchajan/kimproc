@@ -6,6 +6,19 @@ project(kimproc)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
 
+# check c++11 / c++0x
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+    set(CMAKE_CXX_FLAGS "-std=c++0x")
+else()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11
+support. Please use a different C++ compiler.")
+endif()
+
 #FIND PACKAGES
 find_package(Eigen3 REQUIRED)
 find_package(X11 REQUIRED)
@@ -27,6 +40,8 @@ add_executable(kimproc main.cpp Convolution.cpp GaussianSampler.cpp HarrisCorner
 IF(X11_FOUND)
 	target_link_libraries(kimproc ${X11_LIBRARIES})
 ENDIF()
+
+target_link_libraries(kimproc pthread)
 
 #INSTALLATION
 install(TARGETS kimproc DESTINATION bin)
