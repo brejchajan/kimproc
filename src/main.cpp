@@ -20,6 +20,8 @@
 
 #include "HarrisCornerDetector.h"
 #include "SingleImageHazeRemoval.h"
+#include "GradientStitcher.h"
+
 #include "argumentparser.h"
 
 #include "CImg.h"
@@ -61,6 +63,11 @@ ArgumentParser buildArgumentParser(int argc, const char *argv[])
 	s_par.push_back(Parameter("mask", "Mask defining the pixels of the "
 							  "stitched image to be used for stitching. "
 							  "Black (zero) -> do not use, otherwise use."));
+	s_par.push_back(Parameter("tolerance", "Float specifying the error "
+							   "tolerance of the output. Default 0.0001f."));
+	s_par.push_back(Parameter("display image", "Whether or not to display "
+							  "the intermediate image during computation. "
+							  "1 - display, 0 - do not display."));
 	Argument stitch("s", "stitch", s_par, "Stitches The portion of the "
 				   "<stitched image> defined by <mask> with the input image.",
 				   true);
@@ -98,33 +105,48 @@ int main(int argc, const char *argv[])
 		string input_image = ap.resultByShortname("i")[0];
 		string output_path = ap.resultByShortname("o")[0];
 		Argument *harrisArg = ap.argumentByName("harris");
-		Argument *matchArg = ap.argumentByName("match-sift");
+		Argument *stitchArg = ap.argumentByName("stitch");
 		bool harris = harrisArg->exists();
-		bool dehaze = ap.argumentByShortname("dh");
-
-		//Options parsed.
-		//Load the image for processing
-		cimg_library::CImg<unsigned char> src(input_image.c_str());
-
-        png16test(input_image.c_str());
-
+		bool dehaze = ap.argumentByShortname("dh")->exists();
+		
+		
 		if (harris)
 		{
+			//Load the image for processing
+			cimg_library::CImg<unsigned char> src(input_image.c_str());
 			int harris_threshold = atoi(harrisArg->getResult()[0].c_str());
 			HarrisCornerDetector::detect(src, harris_threshold);
+			//Save the final image.
+			src.save(output_path.c_str());
 		}
 		if (dehaze)
 		{
+			//Load the image for processing
+			cimg_library::CImg<unsigned char> src(input_image.c_str());
 			SingleImageHazeRemoval sihr(src, output_path);
 			sihr.dehaze();
+			//Save the final image.
+			src.save(output_path.c_str());
 		}
-		if (matchArg->exists())
+		if (stitchArg->exists())
 		{
+			vector<string> res = stitchArg->getResult();
+			string input_path = input_image;
+			string stitch_path = res[0];
+			string mask_path = res[1];
+			float tolerance = atof(res[2].c_str());
+			int display = atoi(res[3].c_str());
+							   
+			GradientStitcher gs = GradientStitcher(input_path,
+												   stitch_path,
+												   mask_path);
+			CImg<unsigned char> output_img =
+			gs.stitchGaussSeidel(tolerance, display).normalize(0,255);
+			
+			output_img.save(output_path.c_str());
 			
 		}
 		
-		//Save the final image.
-		src.save(output_path.c_str());
 
 	}
 

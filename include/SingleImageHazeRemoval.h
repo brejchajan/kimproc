@@ -53,9 +53,10 @@ public:
 	void dehaze();
 	
 private:
-	std::string output_name;
 	
 	CImg<unsigned char> &input_image;
+	std::string output_name;
+	
 	CImg<unsigned char> dark_channel;
 	CImg<unsigned char> transEst;
 	

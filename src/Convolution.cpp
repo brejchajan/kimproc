@@ -8,7 +8,6 @@
 
 #include "Convolution.h"
 
-
 void Convolution::convolve1D(Image &image, float * result, unsigned int kernel_size, float * kernel, int direction)
 {
 	int kernel_w, kernel_h;
@@ -81,4 +80,62 @@ void Convolution::convolve1D(Imagef &image, float * result, unsigned int kernel_
 			result[index] = res;
 		}
 	}
+}
+
+
+void Convolution::convolve1D(CImg<float> &image, CImg<float> &result, unsigned int kernel_size, float * kernel, int direction)
+{	
+	assert(image.width() == result.width() &&
+		   image.height() == result.height() &&
+		   image.spectrum() == result.spectrum());
+	
+	
+	
+	int kernel_w, kernel_h;
+	kernel_w = kernel_size;
+	kernel_h = 1;
+	if (direction == DIR_VERT)
+	{
+		kernel_h = kernel_size;
+		kernel_w = 1;
+	}
+	
+	int width = image.width();
+	int height = image.height();
+	
+	float *res = new float[image.spectrum()];
+	
+	for (int y = 0; y < height; ++y)
+	{
+		for (int x = 0; x < width; ++x)
+		{
+			// null the accumulator
+			for (int c = 0; c < image.spectrum(); ++c)
+			{
+				res[c] = 0;
+			}
+			for (int t = 0; t < kernel_h; ++t)
+			{
+				for (int s = 0; s < kernel_w; ++s)
+				{
+					int y_t = y - t;
+					int x_s = x - s;
+					y_t = y_t >= 0 ? y_t : 0;
+					x_s = x_s >= 0 ? x_s : 0;
+					for (int c = 0; c < image.spectrum(); ++c)
+					{
+						res[c] += image(x_s, y_t, 0, c) * kernel[t * kernel_w + s];
+					}
+				}
+			}
+			for (int c = 0; c < image.spectrum(); ++c)
+			{
+				result(x, y, 0, c) = res[c];
+				
+			}
+			
+			
+		}
+	}
+	delete [] res;
 }

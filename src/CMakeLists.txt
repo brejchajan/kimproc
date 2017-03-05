@@ -34,7 +34,7 @@ include_directories(../include)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 #EXECUTABLE DEFINITION
-add_executable(kimproc main.cpp Convolution.cpp GaussianSampler.cpp HarrisCornerDetector.cpp SingleImageHazeRemoval.cpp)
+add_executable(kimproc main.cpp Convolution.cpp GaussianSampler.cpp HarrisCornerDetector.cpp SingleImageHazeRemoval.cpp GradientStitcher.cpp)
 
 #X11 LINK
 IF(X11_FOUND)
